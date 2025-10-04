@@ -1,0 +1,179 @@
+.page-section {
+  padding: 4rem 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+  color: white;
+  text-align: center;
+}
+
+.page-section h2 {
+  font-size: 2.5rem;
+  margin-bottom: 1.5rem;
+  color: #ff4d4d;
+}
+
+.page-section p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+/* Services list */
+.page-section ul {
+  list-style: none;
+  padding: 0;
+  font-size: 1.2rem;
+}
+
+.page-section li {
+  margin: 0.5rem 0;
+}
+
+/* Portfolio */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.portfolio-item img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  margin-bottom: 0.5rem;
+}
+
+/* Drones */
+.drone-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+}
+
+.drone-card {
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.drone-card img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.drone-card h3 {
+  margin-bottom: 0.5rem;
+  color: #ff4d4d;
+}
+
+.page-section {
+  min-height: 100vh;
+  padding: 4rem 2rem;
+  background: #111;
+  color: #f2f2f2;
+  text-align: center;
+}
+
+.page-title {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #ff4d4d;
+}
+
+.page-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 3rem;
+  color: #ddd;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.service-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 15px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.service-card img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.service-card h3 {
+  color: #ff4d4d;
+  margin-bottom: 0.5rem;
+}
+
+.service-card p {
+  color: #eee;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.cta {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 10px 20px;
+  background: #ff4d4d;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+.cta:hover {
+  background: #e60000;
+  transform: scale(1.05);
+}
+
+/* Logo styles */
+.logo-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.logo-glow {
+  width: 280px;
+  height: auto;
+  filter: drop-shadow(0 0 25px rgba(0, 200, 255, 0.9))
+          drop-shadow(0 0 45px rgba(180, 0, 255, 0.8));
+  animation: glowPulse 3s infinite alternate;
+}
+
+@keyframes glowPulse {
+  from {
+    filter: drop-shadow(0 0 20px rgba(0, 200, 255, 0.9))
+            drop-shadow(0 0 35px rgba(180, 0, 255, 0.8));
+    transform: scale(1);
+  }
+  to {
+    filter: drop-shadow(0 0 40px rgba(0, 200, 255, 1))
+            drop-shadow(0 0 70px rgba(180, 0, 255, 1));
+    transform: scale(1.05);
+  }
+}
+
