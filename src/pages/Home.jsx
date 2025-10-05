@@ -45,12 +45,15 @@ function Home() {
           playsInline
           className="background-video"
         >
-          <source src="/drone.mp4" type="video/mp4" />
+          <source
+            src="https://isadybjjp1gn22uv.public.blob.vercel-storage.com/drone.mp4"
+            type="video/mp4"
+          />
           Your browser does not support the video tag.
         </video>
 
         <div className="overlay">
-          {/* Logo instead of text */}
+          {/* Logo */}
           <div className="logo-container">
             <img
               src="/logo.png"
