@@ -8,8 +8,13 @@ function Home() {
     message: "",
   })
 
+  // ✅ Fixed handleChange (prevents typing issues)
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value } = e.target
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }))
   }
 
   const handleSubmit = async (e) => {
@@ -38,13 +43,7 @@ function Home() {
     <>
       {/* Hero Section */}
       <section className="hero" id="home">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          className="background-video"
-        >
+        <video autoPlay loop muted playsInline className="background-video">
           <source
             src="https://isadybjjp1gn22uv.public.blob.vercel-storage.com/drone.mp4"
             type="video/mp4"
@@ -53,7 +52,6 @@ function Home() {
         </video>
 
         <div className="overlay">
-          {/* Logo */}
           <div className="logo-container">
             <img
               src="/logo.png"
@@ -153,7 +151,7 @@ function Home() {
             value={formData.message}
             onChange={handleChange}
             required
-          ></textarea>
+          />
           <button type="submit" className="btn">
             Send Message
           </button>
