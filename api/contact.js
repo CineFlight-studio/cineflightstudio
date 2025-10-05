@@ -16,8 +16,8 @@ export default async function handler(req, res) {
 
     // Send email to YOU (your address)
     await resend.emails.send({
-      from: "CineFlight Studio <contact@cineflightstudio.com>", // domain can be your own or default resend.dev domain
-      to: "YOUR_EMAIL_HERE", // <-- replace with your real email
+      from: "CineFlight Studio <cineflight.studio@gmail.com>", // domain can be your own or default resend.dev domain
+      to: "cineflight.studio@gmail.com", // <-- replace with your real email
       subject: `📩 New Contact Message from ${name}`,
       html: `
         <h2>New message from CineFlight contact form</h2>
@@ -29,7 +29,7 @@ export default async function handler(req, res) {
 
     // Auto-reply to customer
     await resend.emails.send({
-      from: "CineFlight Studio <contact@cineflightstudio.com>",
+      from: "CineFlight Studio <cineflight.studio@gmail.com>",
       to: email,
       subject: "📸 We received your message!",
       html: `
