@@ -20,7 +20,7 @@ function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
-      const res = await fetch("/api/contact", {
+      const res = await fetch("/api/sendEmail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
