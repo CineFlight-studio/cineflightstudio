@@ -28,6 +28,20 @@ function App() {
       <footer className="footer">
         <p>© 2025 CineFlight Studio</p>
       </footer>
+
+      {/* ✅ WhatsApp Floating Button (Visible on all pages) */}
+      <a
+        href="https://wa.me/31626397234?text=Hello%20CineFlight!%20I%27m%20interested%20in%20your%20drone%20services."
+        className="whatsapp-float"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img
+          src="/whatsapp.png"
+          alt="WhatsApp Chat"
+          className="whatsapp-icon"
+        />
+      </a>
     </div>
   )
 }
