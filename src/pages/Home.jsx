@@ -1,47 +1,46 @@
-import { useState } from "react"
-import "./Home.css"
+import { useState } from "react";
+import "./Home.css";
 
 function Home() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     message: "",
-  })
+  });
 
-  // ✅ Fixed handleChange (prevents typing issues)
+  // ✅ Fix for smooth typing and state handling
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
+  // ✅ Send email through your /api/sendEmail route
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const res = await fetch("/api/sendEmail", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
-      })
+      });
 
-      const data = await res.json()
+      const data = await res.json();
+
       if (data.success) {
-        alert("✅ Message sent successfully!")
-        setFormData({ name: "", email: "", message: "" })
+        alert("✅ Message sent successfully!");
+        setFormData({ name: "", email: "", message: "" });
       } else {
-        alert("❌ Failed to send message. Try again.")
+        alert("❌ Failed to send message. Try again later.");
       }
-    } catch (error) {
-      console.error(error)
-      alert("⚠️ Error sending message. Check server connection.")
+    } catch (err) {
+      console.error("Error submitting form:", err);
+      alert("⚠️ Error sending message. Please try again later.");
     }
-  }
+  };
 
   return (
     <>
-      {/* Hero Section */}
+      {/* ---------------- Hero Section ---------------- */}
       <section className="hero" id="home">
         <video autoPlay loop muted playsInline className="background-video">
           <source
@@ -59,7 +58,9 @@ function Home() {
               className="logo-glow"
             />
           </div>
+
           <p className="subtitle">Cinematic Drone Experiences</p>
+
           <div className="button-group">
             <button
               className="btn"
@@ -88,7 +89,7 @@ function Home() {
         </div>
       </section>
 
-      {/* About Section */}
+      {/* ---------------- About Section ---------------- */}
       <section id="about" className="page-section">
         <h2>About CineFlight Studio</h2>
         <p>
@@ -99,9 +100,8 @@ function Home() {
         </p>
         <p>
           Our mission is simple: deliver breathtaking visuals that leave a
-          lasting impression. Whether it’s the most important day of your life,
-          showcasing a property, or producing a commercial masterpiece — we make
-          every frame unforgettable.
+          lasting impression. Whether it’s your wedding, a commercial, or a
+          promotional shoot — we make every frame unforgettable.
         </p>
         <p>
           🚀 Built on creativity, precision, and cutting-edge technology, we’re
@@ -109,7 +109,7 @@ function Home() {
         </p>
       </section>
 
-      {/* Certificate Section */}
+      {/* ---------------- Certificate Section ---------------- */}
       <section className="page-section">
         <h2>📜 Certified Drone Pilot</h2>
         <p>
@@ -124,7 +124,7 @@ function Home() {
         />
       </section>
 
-      {/* Contact Section */}
+      {/* ---------------- Contact Section ---------------- */}
       <section id="contact" className="page-section">
         <h2>Contact Us</h2>
         <form className="contact-form" onSubmit={handleSubmit}>
@@ -158,7 +158,7 @@ function Home() {
         </form>
       </section>
 
-      {/* WhatsApp Floating Button */}
+      {/* ---------------- WhatsApp Floating Button ---------------- */}
       <a
         href="https://wa.me/31626397234?text=Hello%20CineFlight!%20I%27m%20interested%20in%20your%20drone%20services."
         className="whatsapp-float"
@@ -168,7 +168,7 @@ function Home() {
         <img src="/whatsapp.png" alt="WhatsApp" className="whatsapp-icon" />
       </a>
     </>
-  )
+  );
 }
 
-export default Home
+export default Home;
