@@ -34,8 +34,10 @@ function Services() {
             <li>Licensed music + logo intro/outro</li>
             <li>Online & USB delivery</li>
           </ul>
-          <Link to="/booking" className="cta">Book Now</Link>
-        </div>
+          <Link to="/booking?package=starter" className="cta">Book Now</Link>
+          <Link to="/booking?package=premium" className="cta">Book Now</Link>
+          <Link to="/booking?package=commercial" className="cta">Book Now</Link>
+          </div>
 
         {/* Commercial Production */}
         <div className="service-card">

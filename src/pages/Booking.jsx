@@ -1,15 +1,38 @@
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import "./Pages.css"
 
 function Booking() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
-    service: "",
     date: "",
   })
   const [paid, setPaid] = useState(false)
+  const [searchParams] = useSearchParams()
+  const [selectedPackage, setSelectedPackage] = useState({
+    name: "Custom Booking",
+    price: "0.00",
+  })
+
+  // Detect selected package from URL
+  useEffect(() => {
+    const pkg = searchParams.get("package")
+    switch (pkg) {
+      case "starter":
+        setSelectedPackage({ name: "Starter Flight", price: "275.00" })
+        break
+      case "premium":
+        setSelectedPackage({ name: "Cinematic Premium", price: "650.00" })
+        break
+      case "commercial":
+        setSelectedPackage({ name: "Commercial Production", price: "1350.00" })
+        break
+      default:
+        setSelectedPackage({ name: "Custom Booking", price: "0.00" })
+    }
+  }, [searchParams])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -18,8 +41,11 @@ function Booking() {
 
   return (
     <section className="page-section">
-      <h2>Book a Drone Session</h2>
-      <p>Reserve your cinematic flight with CineFlight Studio.</p>
+      <h2>Book Your Drone Session</h2>
+      <p>
+        Package: <strong>{selectedPackage.name}</strong> —{" "}
+        <span className="price">€{selectedPackage.price}</span>
+      </p>
 
       {!paid ? (
         <>
@@ -38,13 +64,6 @@ function Booking() {
               onChange={handleChange}
               required
             />
-            <select name="service" onChange={handleChange} required>
-              <option value="">Select Service</option>
-              <option value="Wedding Filming">Wedding Filming</option>
-              <option value="Real Estate Drone Shots">Real Estate Drone Shots</option>
-              <option value="Event Coverage">Event Coverage</option>
-              <option value="Custom Project">Custom Project</option>
-            </select>
             <input
               type="date"
               name="date"
@@ -56,7 +75,7 @@ function Booking() {
           {/* PayPal Button */}
           <PayPalScriptProvider
             options={{
-              "client-id": "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf",
+              "client-id": "YOUR_PAYPAL_CLIENT_ID", // replace with your PayPal ID
               currency: "EUR",
             }}
           >
@@ -66,8 +85,8 @@ function Booking() {
                 return actions.order.create({
                   purchase_units: [
                     {
-                      description: "CineFlight Studio Booking",
-                      amount: { value: "49.99" }, // change price here
+                      description: selectedPackage.name,
+                      amount: { value: selectedPackage.price },
                     },
                   ],
                 })

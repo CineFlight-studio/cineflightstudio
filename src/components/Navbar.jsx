@@ -28,7 +28,6 @@ function Navbar() {
         <Link to="/portfolio" onClick={() => setMenuOpen(false)}>Portfolio</Link>
         <Link to="/drones" onClick={() => setMenuOpen(false)}>Drones</Link>
         <Link to="/contact" onClick={() => setMenuOpen(false)}>Contact</Link>
-        <Link to="/booking" onClick={() => setMenuOpen(false)}>Booking</Link> {/* ✅ Added Booking */}
       </nav>
     </header>
   )
