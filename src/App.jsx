@@ -6,6 +6,7 @@ import Portfolio from "./pages/Portfolio"
 import Drones from "./pages/Drones"
 import Contact from "./pages/Contact"
 import "./App.css"
+import Booking from "./pages/Booking"
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/drones" element={<Drones />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/booking" element={<Booking />} />
         </Routes>
       </main>
 
