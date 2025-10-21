@@ -56,7 +56,7 @@ function Booking() {
           {/* PayPal Button */}
           <PayPalScriptProvider
             options={{
-              "client-id": "AVh02dJBNsuKveJb_CiFDtdWkay4Gp44ZyJhMhXTliMKAftC8g864_LZp11gqCiQvNuL1czsrgdymYdK",
+              "client-id": "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf",
               currency: "EUR",
             }}
           >
