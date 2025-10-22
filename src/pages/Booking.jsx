@@ -1,130 +1,156 @@
-// src/pages/Booking.jsx
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js"
 import { useState, useEffect } from "react"
-import { useSearchParams } from "react-router-dom"
+import { useLocation } from "react-router-dom"
 import "./Pages.css"
 
-export default function Booking() {
+function Booking() {
+  const location = useLocation()
+  const query = new URLSearchParams(location.search)
+
+  // Read query params (if coming from CustomForm)
+  const packageName = query.get("package") || "standard"
+  const priceFromQuery = query.get("price")
+  const summary = query.get("summary") ? JSON.parse(decodeURIComponent(query.get("summary"))) : null
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    service: packageName !== "custom" ? packageName : "Custom Project",
     date: "",
-    location: "",
-  })
-  const [paid, setPaid] = useState(false)
-  const [searchParams] = useSearchParams()
-  const [selectedPackage, setSelectedPackage] = useState({
-    name: "Custom Booking",
-    price: "0.00",
-    summary: null,
+    time: "",
   })
 
+  const [paid, setPaid] = useState(false)
+  const [canPay, setCanPay] = useState(false)
+
+  // Validate required fields before allowing payment
   useEffect(() => {
-    const pkg = searchParams.get("package")
-    // preset packages
-    if (pkg === "starter") {
-      setSelectedPackage({ name: "Starter Flight", price: "275.00", summary: null })
-    } else if (pkg === "premium") {
-      setSelectedPackage({ name: "Cinematic Premium", price: "650.00", summary: null })
-    } else if (pkg === "commercial") {
-      setSelectedPackage({ name: "Commercial Production", price: "1350.00", summary: null })
-    } else if (pkg === "custom") {
-      const price = searchParams.get("price") || "0.00"
-      const rawSummary = searchParams.get("summary")
-      let summary = null
-      try {
-        if (rawSummary) summary = JSON.parse(decodeURIComponent(rawSummary))
-      } catch (err) {
-        summary = null
-      }
-      setSelectedPackage({ name: "Custom Package", price: Number(price).toFixed(2), summary })
-    } else {
-      setSelectedPackage({ name: "Custom Booking", price: "0.00", summary: null })
-    }
-  }, [searchParams])
+    const { name, email, service, date, time } = formData
+    const valid = name && email && service && date && time
+    setCanPay(valid)
+  }, [formData])
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((p) => ({ ...p, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handlePaymentSuccess = async (orderData) => {
-    // you can call your backend here to save booking & notify (optional)
-    setPaid(true)
-
-    // Example: send to an API endpoint to save booking (not included)
-    // await fetch('/api/book', { method: 'POST', body: JSON.stringify({ formData, selectedPackage, orderData }) })
-  }
+  // Determine price
+  const price = priceFromQuery || "49.99"
 
   return (
     <section className="page-section">
-      <h2 className="page-title">Book Your Drone Session</h2>
-
-      <p style={{ textAlign: "center" }}>
-        Package: <strong>{selectedPackage.name}</strong> — <span className="price">€{selectedPackage.price}</span>
-      </p>
-
-      {selectedPackage.summary && (
-        <div className="custom-summary">
-          <h4>Custom details</h4>
-          <ul>
-            <li>Duration: {selectedPackage.summary.durationMins} min</li>
-            <li>Editing: {selectedPackage.summary.editing ? "Yes" : "No"}</li>
-            <li>Color grade: {selectedPackage.summary.colorGrade ? "Yes" : "No"}</li>
-            <li>Raw footage: {selectedPackage.summary.rawFootage ? "Yes" : "No"}</li>
-            <li>Extra clips: {selectedPackage.summary.extraClips}</li>
-            <li>Travel km (approx): {selectedPackage.summary.travelKm} km</li>
-            <li>Notes: {selectedPackage.summary.notes || "—"}</li>
-          </ul>
-        </div>
-      )}
+      <h2>Book Your Drone Session</h2>
+      <p>Reserve your flight with CineFlight Studio and confirm payment securely via PayPal.</p>
 
       {!paid ? (
         <>
-          <form className="contact-form" style={{ maxWidth: 620, margin: "0 auto" }}>
-            <input name="name" placeholder="Your Name" value={formData.name} onChange={handleChange} required />
-            <input name="email" placeholder="Your Email" value={formData.email} onChange={handleChange} required />
-            <input name="date" type="date" value={formData.date} onChange={handleChange} required />
-            <input name="location" placeholder="Location / Address" value={formData.location} onChange={handleChange} />
+          <form className="contact-form">
+            <input
+              type="text"
+              name="name"
+              placeholder="Your Name"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+            <input
+              type="email"
+              name="email"
+              placeholder="Your Email"
+              value={formData.email}
+              onChange={handleChange}
+              required
+            />
+
+            <select name="service" value={formData.service} onChange={handleChange} required>
+              <option value="">Select Service</option>
+              <option value="Starter Flight">Starter Flight</option>
+              <option value="Cinematic Premium">Cinematic Premium</option>
+              <option value="Commercial Production">Commercial Production</option>
+              <option value="Custom Project">Custom Project</option>
+            </select>
+
+            <div className="date-time">
+              <label>
+                Date:
+                <input
+                  type="date"
+                  name="date"
+                  value={formData.date}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+              <label>
+                Time:
+                <input
+                  type="time"
+                  name="time"
+                  value={formData.time}
+                  onChange={handleChange}
+                  required
+                />
+              </label>
+            </div>
           </form>
 
-          <div style={{ maxWidth: 420, margin: "2rem auto", textAlign: "center" }}>
-            {/* PayPal SDK - replace YOUR_PAYPAL_CLIENT_ID with your actual ID */}
+          {summary && (
+            <div className="summary-box">
+              <h4>Custom Package Summary</h4>
+              <pre>{JSON.stringify(summary, null, 2)}</pre>
+            </div>
+          )}
+
+          {/* PayPal Button */}
+          <div style={{ marginTop: "1.5rem" }}>
             <PayPalScriptProvider
               options={{
-                "client-id": "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf", // sandbox/live ID
+                "client-id": "YOUR_PAYPAL_CLIENT_ID",
                 currency: "EUR",
               }}
             >
               <PayPalButtons
                 style={{ layout: "vertical" }}
+                disabled={!canPay}
                 createOrder={(data, actions) => {
                   return actions.order.create({
                     purchase_units: [
                       {
-                        description: `${selectedPackage.name} - CineFlight Studio`,
-                        amount: { value: selectedPackage.price },
+                        description: `CineFlight Studio - ${formData.service}`,
+                        amount: { value: price },
                       },
                     ],
                   })
                 }}
                 onApprove={async (data, actions) => {
-                  const order = await actions.order.capture()
-                  await handlePaymentSuccess(order)
+                  await actions.order.capture()
+                  setPaid(true)
                 }}
               />
             </PayPalScriptProvider>
+
+            {!canPay && (
+              <p className="warning-text">
+                ⚠️ Please fill in all required fields before paying.
+              </p>
+            )}
           </div>
         </>
       ) : (
-        <div className="success">
+        <div>
           <h3>✅ Payment Successful!</h3>
           <p>
-            Thanks {formData.name || "customer"} — we received your payment of €
-            {selectedPackage.price}. We'll contact you at {formData.email}.
+            Thank you, {formData.name}! Your booking for{" "}
+            <strong>{formData.service}</strong> on{" "}
+            <strong>{formData.date}</strong> at{" "}
+            <strong>{formData.time}</strong> is confirmed.
           </p>
+          <p>We’ll contact you soon to finalize the details.</p>
         </div>
       )}
     </section>
   )
 }
+
+export default Booking
