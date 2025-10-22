@@ -92,7 +92,7 @@ export default function Booking() {
             {/* PayPal SDK - replace YOUR_PAYPAL_CLIENT_ID with your actual ID */}
             <PayPalScriptProvider
               options={{
-                "client-id": "YOUR_PAYPAL_CLIENT_ID", // sandbox/live ID
+                "client-id": "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf", // sandbox/live ID
                 currency: "EUR",
               }}
             >
