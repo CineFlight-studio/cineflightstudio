@@ -292,3 +292,93 @@
   border-radius: 12px;
 }
 
+/* Custom form + booking styles */
+.custom-form {
+  max-width: 850px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.custom-form label {
+  color: #ddd;
+  font-weight: 500;
+}
+
+.custom-form input[type="range"] {
+  width: 100%;
+  accent-color: #00c3ff;
+}
+
+.custom-form textarea {
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #eee;
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.custom-price {
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.price-highlight {
+  color: #00c3ff;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, #00c3ff, #7a00ff);
+  color: white;
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+/* Booking page form */
+.contact-form input,
+.contact-form textarea,
+.contact-form select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #eee;
+  margin-bottom: 0.8rem;
+}
+
+/* custom summary box */
+.custom-summary {
+  max-width: 720px;
+  margin: 0 auto 1rem;
+  padding: 12px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.04);
+  color: #ddd;
+}
+
+/* success */
+.success {
+  text-align: center;
+  background: rgba(0,200,255,0.06);
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+/* responsive */
+@media (max-width: 700px) {
+  .checkbox-row { flex-direction: column; }
+  .custom-form { padding: 0 12px; }
+}

@@ -6,6 +6,7 @@ import Portfolio from "./pages/Portfolio"
 import Drones from "./pages/Drones"
 import Contact from "./pages/Contact"
 import "./App.css"
+import CustomForm from "./pages/CustomForm"
 import Booking from "./pages/Booking"
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
           <Route path="/portfolio" element={<Portfolio />} />
           <Route path="/drones" element={<Drones />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/custom" element={<CustomForm />} />
           <Route path="/booking" element={<Booking />} />
         </Routes>
       </main>

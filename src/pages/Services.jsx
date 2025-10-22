@@ -37,6 +37,7 @@ function Services() {
           <Link to="/booking?package=starter" className="cta">Book Now</Link>
           <Link to="/booking?package=premium" className="cta">Book Now</Link>
           <Link to="/booking?package=commercial" className="cta">Book Now</Link>
+          <Link to="/custom" className="cta">Custom Project</Link>
           </div>
 
         {/* Commercial Production */}
