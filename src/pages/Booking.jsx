@@ -8,16 +8,15 @@ function Booking() {
   const query = new URLSearchParams(location.search)
 
   const packageName = query.get("package") || "Starter Flight"
-  const priceFromQuery = query.get("price")
-  const travelFromQuery = parseFloat(query.get("travelKm")) || 0
+  const priceFromQuery = parseFloat(query.get("price")) || null
   const summary = query.get("summary") ? JSON.parse(decodeURIComponent(query.get("summary"))) : null
 
-  // 🎯 Base price table
+  // 🎯 Base prices
   const PACKAGE_PRICES = {
     "Starter Flight": 275,
     "Cinematic Premium": 650,
     "Commercial Production": 1350,
-    "Custom Project": priceFromQuery ? parseFloat(priceFromQuery) : 30,
+    "Custom Project": priceFromQuery || 30,
   }
 
   const BASE_LOCATION = "Kastanjestraat 9, 5922 CA, Venlo, Netherlands"
@@ -33,50 +32,45 @@ function Booking() {
     location: "",
   })
 
-  const [distanceKm, setDistanceKm] = useState(travelFromQuery || null)
+  const [distanceKm, setDistanceKm] = useState(null)
   const [travelFee, setTravelFee] = useState(0)
   const [totalPrice, setTotalPrice] = useState(PACKAGE_PRICES[packageName])
   const [canPay, setCanPay] = useState(false)
   const [paid, setPaid] = useState(false)
 
-  // 🧩 Validate form before payment
+  // ✅ Validate form before allowing payment
   useEffect(() => {
-    const { name, email, service, date, time, location } = formData
-    const valid = name && email && service && date && time && location
-    setCanPay(valid)
+    const { name, email, date, time, location } = formData
+    setCanPay(!!(name && email && date && time && location))
   }, [formData])
 
-  // 💶 Recalculate total when distance changes
+  // 💶 Calculate total
   useEffect(() => {
-    const base = PACKAGE_PRICES[packageName]
-    const km = distanceKm ? parseFloat(distanceKm) : 0
-    const extra = km > INCLUDED_KM ? (km - INCLUDED_KM) * PRICE_PER_KM : 0
+    const base = PACKAGE_PRICES[packageName] || 0
+    const extra = distanceKm && distanceKm > INCLUDED_KM ? (distanceKm - INCLUDED_KM) * PRICE_PER_KM : 0
     setTravelFee(extra)
     setTotalPrice((base + extra).toFixed(2))
   }, [distanceKm, packageName])
 
-  // 📍 Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  // 🌍 Get distance using Nominatim API
+  // 🌍 Distance via Nominatim
   const handleLocationBlur = async () => {
-    if (!formData.location || packageName === "Custom Project") return // Custom already includes travel
+    if (!formData.location) return
     try {
-      const baseResp = await fetch(
+      const [baseData] = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(BASE_LOCATION)}`
-      )
-      const userResp = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}`
-      )
+      ).then((r) => r.json())
 
-      const [baseData] = await baseResp.json()
-      const [userData] = await userResp.json()
+      const [userData] = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}`
+      ).then((r) => r.json())
 
       if (baseData && userData) {
-        const R = 6371 // Earth radius (km)
+        const R = 6371
         const dLat = ((userData.lat - baseData.lat) * Math.PI) / 180
         const dLon = ((userData.lon - baseData.lon) * Math.PI) / 180
         const a =
@@ -86,12 +80,9 @@ function Booking() {
             Math.sin(dLon / 2) ** 2
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
         const dist = R * c
-        setDistanceKm(dist.toFixed(1))
-      } else {
-        setDistanceKm(null)
-      }
-    } catch (err) {
-      console.error("Error fetching distance:", err)
+        setDistanceKm(parseFloat(dist.toFixed(1)))
+      } else setDistanceKm(null)
+    } catch {
       setDistanceKm(null)
     }
   }
@@ -100,7 +91,8 @@ function Booking() {
     <section className="page-section">
       <h2>Book Your Drone Session</h2>
       <p>
-        You selected <strong>{packageName}</strong> — base price €{PACKAGE_PRICES[packageName]}.
+        You selected <strong>{packageName}</strong>
+        {PACKAGE_PRICES[packageName] ? ` — €${PACKAGE_PRICES[packageName]}` : ""}
       </p>
 
       {!paid ? (
@@ -123,11 +115,10 @@ function Booking() {
               required
             />
 
-            <label>Location / Address</label>
             <input
               type="text"
               name="location"
-              placeholder="City or address"
+              placeholder="Event location or city"
               value={formData.location}
               onChange={handleChange}
               onBlur={handleLocationBlur}
@@ -158,30 +149,20 @@ function Booking() {
             </div>
           </form>
 
-          {/* PRICE SUMMARY */}
-          <div
-            className="price-summary"
-            style={{
-              marginTop: "1rem",
-              padding: "1rem",
-              borderRadius: "10px",
-              background: "#f6f8fa",
-            }}
-          >
-            <h3>💰 Booking Summary</h3>
-            <p>Base price: <strong>€{PACKAGE_PRICES[packageName]}</strong></p>
-            {distanceKm !== null && (
-              <>
-                <p>📍 Estimated distance: <strong>{distanceKm} km</strong></p>
-                <p>🚗 Travel fee: <strong>€{travelFee.toFixed(2)}</strong></p>
-              </>
+          {/* PRICE DISPLAY - clean version */}
+          <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
+            {distanceKm && (
+              <p style={{ marginBottom: "0.3rem" }}>
+                📍 <strong>{distanceKm} km</strong> from studio — travel fee €{travelFee.toFixed(2)}
+              </p>
             )}
-            <hr style={{ margin: "10px 0" }} />
-            <h3>Total: €<span className="price-highlight">{totalPrice}</span></h3>
+            <h3 style={{ fontSize: "1.5rem", color: "#00BFFF" }}>
+              Total: €{!isNaN(totalPrice) ? totalPrice : "0.00"}
+            </h3>
           </div>
 
           {/* PAYPAL */}
-          <div style={{ marginTop: "1.5rem" }}>
+          <div style={{ marginTop: "1.2rem" }}>
             <PayPalScriptProvider
               options={{
                 "client-id": "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf",
@@ -210,7 +191,7 @@ function Booking() {
 
             {!canPay && (
               <p className="warning-text">
-                ⚠️ Please complete all fields before proceeding to payment.
+                ⚠️ Please complete all fields before paying.
               </p>
             )}
           </div>
@@ -219,12 +200,10 @@ function Booking() {
         <div>
           <h3>✅ Payment Successful!</h3>
           <p>
-            Thank you, {formData.name}! Your booking for{" "}
-            <strong>{formData.service}</strong> on{" "}
-            <strong>{formData.date}</strong> at{" "}
-            <strong>{formData.time}</strong> is confirmed.
+            Thank you, {formData.name}! Your <strong>{formData.service}</strong> on{" "}
+            <strong>{formData.date}</strong> at <strong>{formData.time}</strong> is confirmed.
           </p>
-          <p>We’ll contact you soon to confirm travel details to {formData.location}.</p>
+          <p>We’ll contact you soon with final details for {formData.location}.</p>
         </div>
       )}
     </section>
