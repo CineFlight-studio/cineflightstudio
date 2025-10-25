@@ -9,9 +9,10 @@ function Booking() {
 
   const packageName = query.get("package") || "Starter Flight"
   const priceFromQuery = query.get("price")
+  const travelFromQuery = parseFloat(query.get("travelKm")) || 0
   const summary = query.get("summary") ? JSON.parse(decodeURIComponent(query.get("summary"))) : null
 
-  // 🎯 base price table
+  // 🎯 Base price table
   const PACKAGE_PRICES = {
     "Starter Flight": 275,
     "Cinematic Premium": 650,
@@ -32,27 +33,29 @@ function Booking() {
     location: "",
   })
 
-  const [distanceKm, setDistanceKm] = useState(null)
+  const [distanceKm, setDistanceKm] = useState(travelFromQuery || null)
   const [travelFee, setTravelFee] = useState(0)
   const [totalPrice, setTotalPrice] = useState(PACKAGE_PRICES[packageName])
   const [canPay, setCanPay] = useState(false)
   const [paid, setPaid] = useState(false)
 
-  // validate form
+  // 🧩 Validate form before payment
   useEffect(() => {
     const { name, email, service, date, time, location } = formData
     const valid = name && email && service && date && time && location
     setCanPay(valid)
   }, [formData])
 
-  // recalc total when distance changes
+  // 💶 Recalculate total when distance changes
   useEffect(() => {
     const base = PACKAGE_PRICES[packageName]
-    const extra = distanceKm && distanceKm > INCLUDED_KM ? (distanceKm - INCLUDED_KM) * PRICE_PER_KM : 0
+    const km = distanceKm ? parseFloat(distanceKm) : 0
+    const extra = km > INCLUDED_KM ? (km - INCLUDED_KM) * PRICE_PER_KM : 0
     setTravelFee(extra)
     setTotalPrice((base + extra).toFixed(2))
   }, [distanceKm, packageName])
 
+  // 📍 Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -60,7 +63,7 @@ function Booking() {
 
   // 🌍 Get distance using Nominatim API
   const handleLocationBlur = async () => {
-    if (!formData.location) return
+    if (!formData.location || packageName === "Custom Project") return // Custom already includes travel
     try {
       const baseResp = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(BASE_LOCATION)}`
@@ -73,7 +76,7 @@ function Booking() {
       const [userData] = await userResp.json()
 
       if (baseData && userData) {
-        const R = 6371 // earth radius km
+        const R = 6371 // Earth radius (km)
         const dLat = ((userData.lat - baseData.lat) * Math.PI) / 180
         const dLon = ((userData.lon - baseData.lon) * Math.PI) / 180
         const a =
@@ -155,16 +158,29 @@ function Booking() {
             </div>
           </form>
 
-          {distanceKm && (
-            <p>
-              📍 Estimated distance: <strong>{distanceKm} km</strong> — travel fee €{travelFee.toFixed(2)}
-            </p>
-          )}
+          {/* PRICE SUMMARY */}
+          <div
+            className="price-summary"
+            style={{
+              marginTop: "1rem",
+              padding: "1rem",
+              borderRadius: "10px",
+              background: "#f6f8fa",
+            }}
+          >
+            <h3>💰 Booking Summary</h3>
+            <p>Base price: <strong>€{PACKAGE_PRICES[packageName]}</strong></p>
+            {distanceKm !== null && (
+              <>
+                <p>📍 Estimated distance: <strong>{distanceKm} km</strong></p>
+                <p>🚗 Travel fee: <strong>€{travelFee.toFixed(2)}</strong></p>
+              </>
+            )}
+            <hr style={{ margin: "10px 0" }} />
+            <h3>Total: €<span className="price-highlight">{totalPrice}</span></h3>
+          </div>
 
-          <h3 style={{ marginTop: "1rem" }}>
-            Total: €<span className="price-highlight">{totalPrice}</span>
-          </h3>
-
+          {/* PAYPAL */}
           <div style={{ marginTop: "1.5rem" }}>
             <PayPalScriptProvider
               options={{
@@ -175,8 +191,8 @@ function Booking() {
               <PayPalButtons
                 style={{ layout: "vertical" }}
                 disabled={!canPay}
-                createOrder={(data, actions) => {
-                  return actions.order.create({
+                createOrder={(data, actions) =>
+                  actions.order.create({
                     purchase_units: [
                       {
                         description: `CineFlight Studio - ${formData.service}`,
@@ -184,7 +200,7 @@ function Booking() {
                       },
                     ],
                   })
-                }}
+                }
                 onApprove={async (data, actions) => {
                   await actions.order.capture()
                   setPaid(true)
@@ -203,8 +219,10 @@ function Booking() {
         <div>
           <h3>✅ Payment Successful!</h3>
           <p>
-            Thank you, {formData.name}! Your booking for <strong>{formData.service}</strong> on{" "}
-            <strong>{formData.date}</strong> at <strong>{formData.time}</strong> is confirmed.
+            Thank you, {formData.name}! Your booking for{" "}
+            <strong>{formData.service}</strong> on{" "}
+            <strong>{formData.date}</strong> at{" "}
+            <strong>{formData.time}</strong> is confirmed.
           </p>
           <p>We’ll contact you soon to confirm travel details to {formData.location}.</p>
         </div>
