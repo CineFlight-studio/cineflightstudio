@@ -45,12 +45,19 @@ function Booking() {
   }, [formData])
 
   // 💶 Calculate total
-  useEffect(() => {
-    const base = PACKAGE_PRICES[packageName] || 0
-    const extra = distanceKm && distanceKm > INCLUDED_KM ? (distanceKm - INCLUDED_KM) * PRICE_PER_KM : 0
-    setTravelFee(extra)
-    setTotalPrice((base + extra).toFixed(2))
-  }, [distanceKm, packageName])
+ useEffect(() => {
+  const base = PACKAGE_PRICES[packageName] || 0
+  let extra = 0
+
+  if (distanceKm && distanceKm > INCLUDED_KM) {
+    extra = (distanceKm - INCLUDED_KM) * PRICE_PER_KM
+  }
+
+  const total = base + extra
+  setTravelFee(extra)
+  setTotalPrice(total.toFixed(2))
+}, [distanceKm, packageName])
+
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -150,16 +157,20 @@ function Booking() {
           </form>
 
           {/* PRICE DISPLAY - clean version */}
-          <div style={{ marginTop: "1.5rem", textAlign: "center" }}>
-            {distanceKm && (
-              <p style={{ marginBottom: "0.3rem" }}>
-                📍 <strong>{distanceKm} km</strong> from studio — travel fee €{travelFee.toFixed(2)}
-              </p>
-            )}
-            <h3 style={{ fontSize: "1.5rem", color: "#00BFFF" }}>
-              Total: €{!isNaN(totalPrice) ? totalPrice : "0.00"}
-            </h3>
-          </div>
+          <div style={{ marginTop: "1.5rem", textAlign: "center", lineHeight: "1.6" }}>
+  <p>🎬 <strong>{packageName}</strong> — €{PACKAGE_PRICES[packageName]}</p>
+
+  {distanceKm && (
+    <p style={{ color: "#aaa" }}>
+      📍 {distanceKm} km from studio — travel fee €{travelFee.toFixed(2)}
+    </p>
+  )}
+
+  <h3 style={{ fontSize: "1.6rem", color: "#00BFFF", marginTop: "0.4rem" }}>
+    Total: €{!isNaN(totalPrice) ? totalPrice : "0.00"}
+  </h3>
+</div>
+
 
           {/* PAYPAL */}
           <div style={{ marginTop: "1.2rem" }}>
