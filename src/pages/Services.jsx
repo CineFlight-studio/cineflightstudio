@@ -1,4 +1,3 @@
-// src/pages/Services.jsx
 import { Link } from "react-router-dom"
 import "./Pages.css"
 
@@ -13,7 +12,7 @@ function Services() {
         "2 curated edited drone clips",
         "Online delivery within 7 days",
       ],
-      link: "/booking?package=starter",
+      link: "/booking?package=Starter%20Flight&price=275",
     },
     {
       name: "Cinematic Premium",
@@ -25,11 +24,11 @@ function Services() {
         "Licensed music + logo intro/outro",
         "Online & USB delivery",
       ],
-      link: "/booking?package=premium",
+      link: "/booking?package=Cinematic%20Premium&price=650",
     },
     {
       name: "Commercial Production",
-      price: "€1 350",
+      price: "€1350",
       description: [
         "Up to 3 hours flight (multi-location)",
         "4K HDR drone footage",
@@ -37,7 +36,7 @@ function Services() {
         "Colour grading, motion graphics & agency use rights",
         "Priority scheduling",
       ],
-      link: "/booking?package=commercial",
+      link: "/booking?package=Commercial%20Production&price=1350",
     },
   ]
 

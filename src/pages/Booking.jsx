@@ -9,7 +9,9 @@ function Booking() {
 
   const packageName = query.get("package") || "Starter Flight"
   const priceFromQuery = parseFloat(query.get("price")) || null
-  const summary = query.get("summary") ? JSON.parse(decodeURIComponent(query.get("summary"))) : null
+  const summary = query.get("summary")
+    ? JSON.parse(decodeURIComponent(query.get("summary")))
+    : null
 
   // 🎯 Base prices
   const PACKAGE_PRICES = {
@@ -18,6 +20,11 @@ function Booking() {
     "Commercial Production": 1350,
     "Custom Project": priceFromQuery || 30,
   }
+
+  const basePrice =
+    priceFromQuery ||
+    PACKAGE_PRICES[packageName] ||
+    PACKAGE_PRICES["Starter Flight"]
 
   const BASE_LOCATION = "Kastanjestraat 9, 5922 CA, Venlo, Netherlands"
   const PRICE_PER_KM = 0.6
@@ -34,7 +41,7 @@ function Booking() {
 
   const [distanceKm, setDistanceKm] = useState(null)
   const [travelFee, setTravelFee] = useState(0)
-  const [totalPrice, setTotalPrice] = useState(PACKAGE_PRICES[packageName])
+  const [totalPrice, setTotalPrice] = useState(basePrice)
   const [canPay, setCanPay] = useState(false)
   const [paid, setPaid] = useState(false)
 
@@ -45,19 +52,15 @@ function Booking() {
   }, [formData])
 
   // 💶 Calculate total
- useEffect(() => {
-  const base = PACKAGE_PRICES[packageName] || 0
-  let extra = 0
-
-  if (distanceKm && distanceKm > INCLUDED_KM) {
-    extra = (distanceKm - INCLUDED_KM) * PRICE_PER_KM
-  }
-
-  const total = base + extra
-  setTravelFee(extra)
-  setTotalPrice(total.toFixed(2))
-}, [distanceKm, packageName])
-
+  useEffect(() => {
+    let extra = 0
+    if (distanceKm && distanceKm > INCLUDED_KM) {
+      extra = (distanceKm - INCLUDED_KM) * PRICE_PER_KM
+    }
+    const total = basePrice + extra
+    setTravelFee(extra)
+    setTotalPrice(total.toFixed(2))
+  }, [distanceKm, basePrice])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -98,8 +101,8 @@ function Booking() {
     <section className="page-section">
       <h2>Book Your Drone Session</h2>
       <p>
-        You selected <strong>{packageName}</strong>
-        {PACKAGE_PRICES[packageName] ? ` — €${PACKAGE_PRICES[packageName]}` : ""}
+        You selected <strong>{packageName}</strong> — Base price: €
+        {basePrice}
       </p>
 
       {!paid ? (
@@ -156,27 +159,26 @@ function Booking() {
             </div>
           </form>
 
-          {/* PRICE DISPLAY - clean version */}
+          {/* PRICE DISPLAY */}
           <div style={{ marginTop: "1.5rem", textAlign: "center", lineHeight: "1.6" }}>
-  <p>🎬 <strong>{packageName}</strong> — €{PACKAGE_PRICES[packageName]}</p>
+            {distanceKm && (
+              <p style={{ color: "#aaa" }}>
+                📍 {distanceKm} km from studio — travel fee €
+                {travelFee.toFixed(2)}
+              </p>
+            )}
 
-  {distanceKm && (
-    <p style={{ color: "#aaa" }}>
-      📍 {distanceKm} km from studio — travel fee €{travelFee.toFixed(2)}
-    </p>
-  )}
-
-  <h3 style={{ fontSize: "1.6rem", color: "#00BFFF", marginTop: "0.4rem" }}>
-    Total: €{!isNaN(totalPrice) ? totalPrice : "0.00"}
-  </h3>
-</div>
-
+            <h3 style={{ fontSize: "1.6rem", color: "#00BFFF", marginTop: "0.4rem" }}>
+              Total: €{!isNaN(totalPrice) ? totalPrice : basePrice.toFixed(2)}
+            </h3>
+          </div>
 
           {/* PAYPAL */}
           <div style={{ marginTop: "1.2rem" }}>
             <PayPalScriptProvider
               options={{
-                "client-id": "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf",
+                "client-id":
+                  "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf",
                 currency: "EUR",
               }}
             >
@@ -211,10 +213,12 @@ function Booking() {
         <div>
           <h3>✅ Payment Successful!</h3>
           <p>
-            Thank you, {formData.name}! Your <strong>{formData.service}</strong> on{" "}
-            <strong>{formData.date}</strong> at <strong>{formData.time}</strong> is confirmed.
+            Thank you, {formData.name}! Your <strong>{formData.service}</strong>{" "}
+            on <strong>{formData.date}</strong> at <strong>{formData.time}</strong> is confirmed.
           </p>
-          <p>We’ll contact you soon with final details for {formData.location}.</p>
+          <p>
+            We’ll contact you soon with final details for {formData.location}.
+          </p>
         </div>
       )}
     </section>
