@@ -5,61 +5,61 @@ import "./Pages.css"
 export default function CustomForm() {
   const navigate = useNavigate()
 
-  // Base package tiers
-  const BASE_PACKAGES = {
-    Starter: { name: "Starter Flight", base: 275 },
-    Cinematic: { name: "Cinematic Premium", base: 650 },
-    Commercial: { name: "Commercial Production", base: 1350 },
-  }
+  // --- Base prices for each feature ---
+  const BASE_PRICE = 30.0 // starting price if only raw footage
+  const PRICE_PER_10MIN = 20.0
+  const PRICE_EDIT_CLIP = 25.0
+  const PRICE_COLOR = 60.0
+  const PRICE_MUSIC = 50.0
+  const PRICE_MOTION = 90.0
+  const PRICE_RAW_ONLY = 30.0
 
-  // Feature prices
-  const PRICE_RAW = 30.0
-  const PRICE_EXTRA_CLIP = 20.0
-  const PRICE_COLOR_GRADING = 80.0
-  const PRICE_LICENSE_MUSIC = 50.0
-
-  // Form states
-  const [basePackage, setBasePackage] = useState("Starter")
-  const [duration, setDuration] = useState(30)
-  const [extraClips, setExtraClips] = useState(0)
-  const [colorGrading, setColorGrading] = useState(true)
-  const [licensedMusic, setLicensedMusic] = useState(false)
-  const [rawFootage, setRawFootage] = useState(false)
+  // --- User selections ---
+  const [duration, setDuration] = useState(10)
+  const [editClips, setEditClips] = useState(0)
+  const [color, setColor] = useState(false)
+  const [music, setMusic] = useState(false)
+  const [motion, setMotion] = useState(false)
+  const [raw, setRaw] = useState(false)
   const [notes, setNotes] = useState("")
 
-  // 💶 Price calculator
+  // --- Price calculation ---
   const calcPrice = () => {
-    let basePrice = BASE_PACKAGES[basePackage].base
+    let price = BASE_PRICE
 
-    // Duration effect: every 30 min adds 10% of base
-    const extraTime = Math.max(0, (duration - 30) / 30)
-    basePrice += extraTime * (BASE_PACKAGES[basePackage].base * 0.1)
+    // Flight time pricing (after 10 min)
+    const extraSteps = Math.max(0, (duration - 10) / 10)
+    price += extraSteps * PRICE_PER_10MIN
 
-    if (colorGrading) basePrice += PRICE_COLOR_GRADING
-    if (licensedMusic) basePrice += PRICE_LICENSE_MUSIC
-    if (rawFootage) basePrice += PRICE_RAW
-    basePrice += extraClips * PRICE_EXTRA_CLIP
+    if (editClips > 0) price += editClips * PRICE_EDIT_CLIP
+    if (color) price += PRICE_COLOR
+    if (music) price += PRICE_MUSIC
+    if (motion) price += PRICE_MOTION
+    if (raw && editClips === 0 && !color && !music && !motion) {
+      // raw footage only
+      price = PRICE_RAW_ONLY
+    }
 
-    return basePrice.toFixed(2)
+    return price.toFixed(2)
   }
 
-  const totalPrice = calcPrice()
+  const total = calcPrice()
 
-  const handleContinue = (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault()
     const summary = {
-      basePackage,
       duration,
-      extraClips,
-      colorGrading,
-      licensedMusic,
-      rawFootage,
+      editClips,
+      color,
+      music,
+      motion,
+      raw,
       notes,
     }
 
     const query = new URLSearchParams({
       package: "Custom Project",
-      price: totalPrice,
+      price: total,
       summary: encodeURIComponent(JSON.stringify(summary)),
     })
 
@@ -68,103 +68,106 @@ export default function CustomForm() {
 
   return (
     <section className="page-section">
-      <h2 className="page-title">🎛️ Create Your Custom Drone Package</h2>
+      <h2 className="page-title">🎬 Customize Your Drone Package</h2>
       <p className="page-subtitle">
-        Start from one of our base packages and add features to fit your exact needs.
-        You’ll see the live price update below.
+        Select exactly what you need — from raw footage only to a full cinematic production.
       </p>
 
-      <form className="custom-form" onSubmit={handleContinue}>
-        {/* Base package select */}
-        <label>Choose base package:</label>
-        <select
-          value={basePackage}
-          onChange={(e) => setBasePackage(e.target.value)}
-        >
-          {Object.entries(BASE_PACKAGES).map(([key, pkg]) => (
-            <option key={key} value={key}>
-              {pkg.name} — €{pkg.base}
-            </option>
-          ))}
-        </select>
-
-        {/* Duration */}
+      <form className="custom-form" onSubmit={handleSubmit}>
+        {/* Flight duration */}
         <label>
           Flight duration: <strong>{duration} min</strong>
         </label>
         <input
           type="range"
-          min="30"
-          max="240"
-          step="30"
+          min="10"
+          max="180"
+          step="10"
           value={duration}
           onChange={(e) => setDuration(Number(e.target.value))}
         />
 
-        {/* Options */}
-        <div className="checkbox-row">
-          <label>
-            <input
-              type="checkbox"
-              checked={colorGrading}
-              onChange={() => setColorGrading(!colorGrading)}
-            />
-            Advanced color grading (+€{PRICE_COLOR_GRADING})
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={licensedMusic}
-              onChange={() => setLicensedMusic(!licensedMusic)}
-            />
-            Licensed music (+€{PRICE_LICENSE_MUSIC})
-          </label>
-          <label>
-            <input
-              type="checkbox"
-              checked={rawFootage}
-              onChange={() => setRawFootage(!rawFootage)}
-            />
-            Include raw footage (+€{PRICE_RAW})
-          </label>
-        </div>
-
-        {/* Extra clips */}
+        {/* Edited clips */}
         <label>
-          Additional edited clips: <strong>{extraClips}</strong>
+          Number of edited clips: <strong>{editClips}</strong>
         </label>
         <input
           type="range"
           min="0"
-          max="20"
+          max="10"
           step="1"
-          value={extraClips}
-          onChange={(e) => setExtraClips(Number(e.target.value))}
+          value={editClips}
+          onChange={(e) => setEditClips(Number(e.target.value))}
         />
 
+        {/* Feature options */}
+        <div className="checkbox-row">
+          <label>
+            <input
+              type="checkbox"
+              checked={color}
+              onChange={() => setColor(!color)}
+            />
+            Color grading (+€{PRICE_COLOR})
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={music}
+              onChange={() => setMusic(!music)}
+            />
+            Licensed music (+€{PRICE_MUSIC})
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={motion}
+              onChange={() => setMotion(!motion)}
+            />
+            Motion graphics / logo intro (+€{PRICE_MOTION})
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
+              checked={raw}
+              onChange={() => setRaw(!raw)}
+            />
+            Raw footage only (+€{PRICE_RAW_ONLY})
+          </label>
+        </div>
+
         {/* Notes */}
-        <label>Special requests or project notes:</label>
+        <label>Notes / project details:</label>
         <textarea
           rows="4"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          placeholder="E.g. event type, location, or filming ideas..."
+          placeholder="Describe your idea or project..."
         />
 
-        {/* Total price */}
+        {/* Total */}
         <div
           style={{
             textAlign: "center",
-            fontSize: "1.4rem",
-            fontWeight: "bold",
             marginTop: "1rem",
+            fontSize: "1.5rem",
             color: "#00BFFF",
+            fontWeight: "bold",
           }}
         >
-          Estimated Price: €{totalPrice}
+          Estimated Price: €{total}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "center", marginTop: "1rem" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "1rem",
+          }}
+        >
           <button type="submit" className="btn primary">
             Continue to Booking
           </button>
