@@ -51,7 +51,7 @@ function Booking() {
     setCanPay(!!(name && email && date && time && location))
   }, [formData])
 
-  // 💶 Calculate total
+  // 💶 Recalculate total
   useEffect(() => {
     let extra = 0
     if (distanceKm && distanceKm > INCLUDED_KM) {
@@ -62,39 +62,51 @@ function Booking() {
     setTotalPrice(total.toFixed(2))
   }, [distanceKm, basePrice])
 
+  // 🌍 Auto-fetch distance as user types location
+  useEffect(() => {
+    const fetchDistance = async () => {
+      if (!formData.location || formData.location.length < 3) return
+      try {
+        const [baseData] = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            BASE_LOCATION
+          )}`
+        ).then((r) => r.json())
+
+        const [userData] = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            formData.location
+          )}`
+        ).then((r) => r.json())
+
+        if (baseData && userData) {
+          const R = 6371
+          const dLat = ((userData.lat - baseData.lat) * Math.PI) / 180
+          const dLon = ((userData.lon - baseData.lon) * Math.PI) / 180
+          const a =
+            Math.sin(dLat / 2) ** 2 +
+            Math.cos(baseData.lat * Math.PI / 180) *
+              Math.cos(userData.lat * Math.PI / 180) *
+              Math.sin(dLon / 2) ** 2
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+          const dist = R * c
+          setDistanceKm(parseFloat(dist.toFixed(1)))
+        } else {
+          setDistanceKm(null)
+        }
+      } catch {
+        setDistanceKm(null)
+      }
+    }
+
+    // debounce delay: wait 1 sec after typing stops
+    const delay = setTimeout(fetchDistance, 1000)
+    return () => clearTimeout(delay)
+  }, [formData.location])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-  }
-
-  // 🌍 Distance via Nominatim
-  const handleLocationBlur = async () => {
-    if (!formData.location) return
-    try {
-      const [baseData] = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(BASE_LOCATION)}`
-      ).then((r) => r.json())
-
-      const [userData] = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(formData.location)}`
-      ).then((r) => r.json())
-
-      if (baseData && userData) {
-        const R = 6371
-        const dLat = ((userData.lat - baseData.lat) * Math.PI) / 180
-        const dLon = ((userData.lon - baseData.lon) * Math.PI) / 180
-        const a =
-          Math.sin(dLat / 2) ** 2 +
-          Math.cos(baseData.lat * Math.PI / 180) *
-            Math.cos(userData.lat * Math.PI / 180) *
-            Math.sin(dLon / 2) ** 2
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-        const dist = R * c
-        setDistanceKm(parseFloat(dist.toFixed(1)))
-      } else setDistanceKm(null)
-    } catch {
-      setDistanceKm(null)
-    }
   }
 
   return (
@@ -131,7 +143,6 @@ function Booking() {
               placeholder="Event location or city"
               value={formData.location}
               onChange={handleChange}
-              onBlur={handleLocationBlur}
               required
             />
 
@@ -160,7 +171,13 @@ function Booking() {
           </form>
 
           {/* PRICE DISPLAY */}
-          <div style={{ marginTop: "1.5rem", textAlign: "center", lineHeight: "1.6" }}>
+          <div
+            style={{
+              marginTop: "1.5rem",
+              textAlign: "center",
+              lineHeight: "1.6",
+            }}
+          >
             {distanceKm && (
               <p style={{ color: "#aaa" }}>
                 📍 {distanceKm} km from studio — travel fee €
@@ -168,7 +185,13 @@ function Booking() {
               </p>
             )}
 
-            <h3 style={{ fontSize: "1.6rem", color: "#00BFFF", marginTop: "0.4rem" }}>
+            <h3
+              style={{
+                fontSize: "1.6rem",
+                color: "#00BFFF",
+                marginTop: "0.4rem",
+              }}
+            >
               Total: €{!isNaN(totalPrice) ? totalPrice : basePrice.toFixed(2)}
             </h3>
           </div>
@@ -213,12 +236,12 @@ function Booking() {
         <div>
           <h3>✅ Payment Successful!</h3>
           <p>
-            Thank you, {formData.name}! Your <strong>{formData.service}</strong>{" "}
-            on <strong>{formData.date}</strong> at <strong>{formData.time}</strong> is confirmed.
+            Thank you, {formData.name}! Your{" "}
+            <strong>{formData.service}</strong> on{" "}
+            <strong>{formData.date}</strong> at{" "}
+            <strong>{formData.time}</strong> is confirmed.
           </p>
-          <p>
-            We’ll contact you soon with final details for {formData.location}.
-          </p>
+          <p>We’ll contact you soon with final details for {formData.location}.</p>
         </div>
       )}
     </section>
