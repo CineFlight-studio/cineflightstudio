@@ -382,3 +382,35 @@
   .checkbox-row { flex-direction: column; }
   .custom-form { padding: 0 12px; }
 }
+
+.hero {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: 2.6rem;
+}
+
+.hero-sub {
+  margin: 1rem 0;
+  color: #ccc;
+}
+
+.hero-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+}
+
+.price-box {
+  background: #111;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-radius: 10px;
+}
+

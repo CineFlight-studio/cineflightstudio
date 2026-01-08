@@ -6,35 +6,38 @@ function Services() {
     {
       name: "Starter Flight",
       price: 275,
-      features: [
+      description: [
+        "Perfect for small businesses & private projects",
         "Up to 30 min flight time",
-        "Full HD drone footage",
-        "2 edited cinematic clips",
-        "Online delivery",
+        "Full HD / 4K drone footage",
+        "2 professionally edited clips",
+        "Online delivery within 7 days",
       ],
-      slug: "starter",
+      link: "/booking?package=Starter Flight",
     },
     {
       name: "Cinematic Premium",
       price: 650,
-      features: [
-        "Up to 1 hour flight",
+      description: [
+        "High-end cinematic content",
+        "Up to 1 hour flight time",
         "4K cinematic video",
         "5 edited clips + drone photos",
-        "Licensed music & branding",
+        "Music & logo intro/outro",
       ],
-      slug: "premium",
+      link: "/booking?package=Cinematic Premium",
     },
     {
       name: "Commercial Production",
       price: 1350,
-      features: [
-        "Up to 3 hours (multi-location)",
+      description: [
+        "For agencies & serious brands",
+        "Multi-location shooting",
         "4K HDR footage",
-        "Agency & commercial usage",
-        "Priority scheduling",
+        "Advanced color grading & motion graphics",
+        "Commercial usage rights",
       ],
-      slug: "commercial",
+      link: "/booking?package=Commercial Production",
     },
   ]
 
@@ -43,21 +46,18 @@ function Services() {
       <h2 className="page-title">Drone Packages</h2>
 
       <div className="service-cards">
-        {packages.map((p, i) => (
+        {packages.map((pkg, i) => (
           <div className="service-card" key={i}>
-            <h3>{p.name}</h3>
-            <p className="price">€{p.price}</p>
+            <h3>{pkg.name}</h3>
+            <p className="price">€{pkg.price}</p>
 
             <ul>
-              {p.features.map((f, idx) => (
-                <li key={idx}>{f}</li>
+              {pkg.description.map((line, idx) => (
+                <li key={idx}>{line}</li>
               ))}
             </ul>
 
-            <Link
-              to={`/booking?package=${p.slug}`}
-              className="cta"
-            >
+            <Link to={pkg.link} className="cta">
               Book Now
             </Link>
           </div>
@@ -67,13 +67,16 @@ function Services() {
         <div className="service-card custom">
           <h3>Custom Project</h3>
           <p className="price">From €30</p>
+
           <ul>
-            <li>Choose only what you need</li>
-            <li>Based on real packages</li>
+            <li>Select only what you need</li>
+            <li>Raw footage, edits, extras</li>
             <li>Instant price calculation</li>
+            <li>Pay & book online</li>
           </ul>
+
           <Link to="/custom" className="cta">
-            Build Custom Package
+            Build Custom Project
           </Link>
         </div>
       </div>
