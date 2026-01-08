@@ -3,37 +3,29 @@ import { useState, useEffect } from "react"
 import { useLocation } from "react-router-dom"
 import "./Pages.css"
 
+const PACKAGE_MAP = {
+  starter: { name: "Starter Flight", price: 275 },
+  premium: { name: "Cinematic Premium", price: 650 },
+  commercial: { name: "Commercial Production", price: 1350 },
+  custom: { name: "Custom Project", price: 30 },
+}
+
 function Booking() {
   const location = useLocation()
   const query = new URLSearchParams(location.search)
 
-  const packageName = query.get("package") || "Starter Flight"
-  const priceFromQuery = parseFloat(query.get("price")) || null
-  const summary = query.get("summary")
-    ? JSON.parse(decodeURIComponent(query.get("summary")))
-    : null
+  const pkgKey = query.get("package") || "starter"
+  const customPrice = parseFloat(query.get("price"))
 
-  // 🎯 Base prices
-  const PACKAGE_PRICES = {
-    "Starter Flight": 275,
-    "Cinematic Premium": 650,
-    "Commercial Production": 1350,
-    "Custom Project": priceFromQuery || 30,
-  }
+  const basePackage = PACKAGE_MAP[pkgKey] || PACKAGE_MAP.starter
+  const basePrice = pkgKey === "custom" && customPrice ? customPrice : basePackage.price
 
-  const basePrice =
-    priceFromQuery ||
-    PACKAGE_PRICES[packageName] ||
-    PACKAGE_PRICES["Starter Flight"]
-
-  const BASE_LOCATION = "Kastanjestraat 9, 5922 CA, Venlo, Netherlands"
-  const PRICE_PER_KM = 0.6
   const INCLUDED_KM = 10
+  const PRICE_PER_KM = 0.6
 
-  const [formData, setFormData] = useState({
+  const [form, setForm] = useState({
     name: "",
     email: "",
-    service: packageName,
     date: "",
     time: "",
     location: "",
@@ -41,209 +33,72 @@ function Booking() {
 
   const [distanceKm, setDistanceKm] = useState(null)
   const [travelFee, setTravelFee] = useState(0)
-  const [totalPrice, setTotalPrice] = useState(basePrice)
+  const [total, setTotal] = useState(basePrice)
   const [canPay, setCanPay] = useState(false)
   const [paid, setPaid] = useState(false)
 
-  // ✅ Validate form before allowing payment
   useEffect(() => {
-    const { name, email, date, time, location } = formData
-    setCanPay(!!(name && email && date && time && location))
-  }, [formData])
+    const valid = Object.values(form).every(Boolean)
+    setCanPay(valid)
+  }, [form])
 
-  // 💶 Recalculate total
   useEffect(() => {
-    let extra = 0
-    if (distanceKm && distanceKm > INCLUDED_KM) {
-      extra = (distanceKm - INCLUDED_KM) * PRICE_PER_KM
-    }
-    const total = basePrice + extra
+    const extra = distanceKm && distanceKm > INCLUDED_KM
+      ? (distanceKm - INCLUDED_KM) * PRICE_PER_KM
+      : 0
+
     setTravelFee(extra)
-    setTotalPrice(total.toFixed(2))
+    setTotal((basePrice + extra).toFixed(2))
   }, [distanceKm, basePrice])
 
-  // 🌍 Auto-fetch distance as user types location
-  useEffect(() => {
-    const fetchDistance = async () => {
-      if (!formData.location || formData.location.length < 3) return
-      try {
-        const [baseData] = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            BASE_LOCATION
-          )}`
-        ).then((r) => r.json())
-
-        const [userData] = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-            formData.location
-          )}`
-        ).then((r) => r.json())
-
-        if (baseData && userData) {
-          const R = 6371
-          const dLat = ((userData.lat - baseData.lat) * Math.PI) / 180
-          const dLon = ((userData.lon - baseData.lon) * Math.PI) / 180
-          const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(baseData.lat * Math.PI / 180) *
-              Math.cos(userData.lat * Math.PI / 180) *
-              Math.sin(dLon / 2) ** 2
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-          const dist = R * c
-          setDistanceKm(parseFloat(dist.toFixed(1)))
-        } else {
-          setDistanceKm(null)
-        }
-      } catch {
-        setDistanceKm(null)
-      }
-    }
-
-    // debounce delay: wait 1 sec after typing stops
-    const delay = setTimeout(fetchDistance, 1000)
-    return () => clearTimeout(delay)
-  }, [formData.location])
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value })
 
   return (
     <section className="page-section">
-      <h2>Book Your Drone Session</h2>
-      <p>
-        You selected <strong>{packageName}</strong> — Base price: €
-        {basePrice}
-      </p>
+      <h2>Booking – {basePackage.name}</h2>
 
-      {!paid ? (
-        <>
-          <form className="contact-form">
-            <input
-              type="text"
-              name="name"
-              placeholder="Your Name"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Your Email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
+      <form className="contact-form">
+        <input name="name" placeholder="Name" onChange={handleChange} required />
+        <input name="email" type="email" placeholder="Email" onChange={handleChange} required />
+        <input name="location" placeholder="Location / City" onChange={handleChange} required />
+        <input name="date" type="date" onChange={handleChange} required />
+        <input name="time" type="time" onChange={handleChange} required />
+      </form>
 
-            <input
-              type="text"
-              name="location"
-              placeholder="Event location or city"
-              value={formData.location}
-              onChange={handleChange}
-              required
-            />
+      <div className="price-box">
+        <p>🎬 Package: €{basePrice}</p>
+        {distanceKm && <p>🚗 Travel fee: €{travelFee.toFixed(2)}</p>}
+        <h3>Total: €{total}</h3>
+      </div>
 
-            <div className="date-time">
-              <label>
-                Date:
-                <input
-                  type="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-              <label>
-                Time:
-                <input
-                  type="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleChange}
-                  required
-                />
-              </label>
-            </div>
-          </form>
+      <PayPalScriptProvider
+        options={{
+          "client-id": "YOUR_PAYPAL_CLIENT_ID",
+          currency: "EUR",
+        }}
+      >
+        <PayPalButtons
+          disabled={!canPay}
+          createOrder={(data, actions) =>
+            actions.order.create({
+              purchase_units: [
+                {
+                  description: basePackage.name,
+                  amount: { value: total },
+                },
+              ],
+            })
+          }
+          onApprove={async (_, actions) => {
+            await actions.order.capture()
+            setPaid(true)
+          }}
+        />
+      </PayPalScriptProvider>
 
-          {/* PRICE DISPLAY */}
-          <div
-            style={{
-              marginTop: "1.5rem",
-              textAlign: "center",
-              lineHeight: "1.6",
-            }}
-          >
-            {distanceKm && (
-              <p style={{ color: "#aaa" }}>
-                📍 {distanceKm} km from studio — travel fee €
-                {travelFee.toFixed(2)}
-              </p>
-            )}
-
-            <h3
-              style={{
-                fontSize: "1.6rem",
-                color: "#00BFFF",
-                marginTop: "0.4rem",
-              }}
-            >
-              Total: €{!isNaN(totalPrice) ? totalPrice : basePrice.toFixed(2)}
-            </h3>
-          </div>
-
-          {/* PAYPAL */}
-          <div style={{ marginTop: "1.2rem" }}>
-            <PayPalScriptProvider
-              options={{
-                "client-id":
-                  "AX5GzYOdK1JnKpoof6T-tRxXYpl_sX5NkpO9p2k0iuP2BNl8GFsqkfAIeeZ-MZtGBbDl-Vew1xeFhixf",
-                currency: "EUR",
-              }}
-            >
-              <PayPalButtons
-                style={{ layout: "vertical" }}
-                disabled={!canPay}
-                createOrder={(data, actions) =>
-                  actions.order.create({
-                    purchase_units: [
-                      {
-                        description: `CineFlight Studio - ${formData.service}`,
-                        amount: { value: totalPrice },
-                      },
-                    ],
-                  })
-                }
-                onApprove={async (data, actions) => {
-                  await actions.order.capture()
-                  setPaid(true)
-                }}
-              />
-            </PayPalScriptProvider>
-
-            {!canPay && (
-              <p className="warning-text">
-                ⚠️ Please complete all fields before paying.
-              </p>
-            )}
-          </div>
-        </>
-      ) : (
-        <div>
-          <h3>✅ Payment Successful!</h3>
-          <p>
-            Thank you, {formData.name}! Your{" "}
-            <strong>{formData.service}</strong> on{" "}
-            <strong>{formData.date}</strong> at{" "}
-            <strong>{formData.time}</strong> is confirmed.
-          </p>
-          <p>We’ll contact you soon with final details for {formData.location}.</p>
-        </div>
-      )}
+      {!canPay && <p className="warning-text">Fill all fields to pay</p>}
+      {paid && <h3>✅ Payment successful – we will contact you</h3>}
     </section>
   )
 }
