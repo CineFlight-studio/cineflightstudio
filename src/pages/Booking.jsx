@@ -17,145 +17,107 @@ function Booking() {
   const BASE_LOCATION = "Kastanjestraat 9, Venlo, Netherlands"
   const INCLUDED_KM = 10
   const PRICE_PER_KM = 0.6
-
   const basePrice = PACKAGE_PRICES[packageName] || 0
 
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    location: "",
-    date: "",
-    time: "",
-  })
-
+  const [formData, setFormData] = useState({ name: "", email: "", location: "", date: "", time: "" })
   const [distanceKm, setDistanceKm] = useState(null)
-  const [travelFee, setTravelFee] = useState(0)
-  const [totalPrice, setTotalPrice] = useState(basePrice)
-  const [canPay, setCanPay] = useState(false)
+  const [isCalculating, setIsCalculating] = useState(false) // New: Loading state
+  const [totalPrice, setTotalPrice] = useState(basePrice.toString())
   const [paid, setPaid] = useState(false)
 
-  useEffect(() => {
-    const valid =
-      formData.name &&
-      formData.email &&
-      formData.location &&
-      formData.date &&
-      formData.time
-    setCanPay(valid)
-  }, [formData])
-
-  useEffect(() => {
-    const extra =
-      distanceKm && distanceKm > INCLUDED_KM
-        ? (distanceKm - INCLUDED_KM) * PRICE_PER_KM
-        : 0
-
-    setTravelFee(extra)
-    setTotalPrice((basePrice + extra).toFixed(2))
-  }, [distanceKm, basePrice])
-
-  const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+  // Validation: Check if form is full AND not currently calculating distance
+  const canPay = formData.name && formData.email && formData.location && formData.date && formData.time && !isCalculating;
 
   const handleLocationBlur = async () => {
     if (!formData.location) return
+    setIsCalculating(true) // Start loading
 
-    const fetchCoords = async (q) => {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-          q
-        )}`
-      )
-      const data = await res.json()
-      return data[0]
+    try {
+      const fetchCoords = async (q) => {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`)
+        const data = await res.json()
+        return data[0]
+      }
+
+      const base = await fetchCoords(BASE_LOCATION)
+      const user = await fetchCoords(formData.location)
+
+      if (base && user) {
+        const R = 6371 // Earth's radius
+        const dLat = ((user.lat - base.lat) * Math.PI) / 180
+        const dLon = ((user.lon - base.lon) * Math.PI) / 180
+        const a = Math.sin(dLat / 2) ** 2 + Math.cos(base.lat * Math.PI / 180) * Math.cos(user.lat * Math.PI / 180) * Math.sin(dLon / 2) ** 2
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+        const distance = R * c
+        
+        const extra = distance > INCLUDED_KM ? (distance - INCLUDED_KM) * PRICE_PER_KM : 0
+        setDistanceKm(distance.toFixed(1))
+        setTotalPrice((basePrice + extra).toFixed(2))
+      }
+    } catch (error) {
+      console.error("Location error:", error)
+    } finally {
+      setIsCalculating(false) // Stop loading
     }
-
-    const base = await fetchCoords(BASE_LOCATION)
-    const user = await fetchCoords(formData.location)
-
-    if (!base || !user) return
-
-    const R = 6371
-    const dLat = ((user.lat - base.lat) * Math.PI) / 180
-    const dLon = ((user.lon - base.lon) * Math.PI) / 180
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(base.lat * Math.PI / 180) *
-        Math.cos(user.lat * Math.PI / 180) *
-        Math.sin(dLon / 2) ** 2
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    setDistanceKm((R * c).toFixed(1))
   }
 
   return (
-    <section className="page-section">
-      <h2>Booking</h2>
+    <section className="page-section booking-container">
+      <div className="booking-card">
+        <h2>Book Your Session</h2>
+        <p className="selected-package">Package: <strong>{packageName}</strong> — €{basePrice}</p>
 
-      <p>
-        <strong>{packageName}</strong> — €{basePrice}
-      </p>
+        {!paid ? (
+          <>
+            <form className="contact-form">
+              <input name="name" placeholder="Full Name" onChange={(e) => setFormData({...formData, name: e.target.value})} />
+              <input name="email" type="email" placeholder="Email Address" onChange={(e) => setFormData({...formData, email: e.target.value})} />
+              <input 
+                name="location" 
+                placeholder="Event Address (Street, City)" 
+                onBlur={handleLocationBlur}
+                onChange={(e) => setFormData({...formData, location: e.target.value})} 
+              />
+              <div className="date-time">
+                <input type="date" name="date" onChange={(e) => setFormData({...formData, date: e.target.value})} />
+                <input type="time" name="time" onChange={(e) => setFormData({...formData, time: e.target.value})} />
+              </div>
+            </form>
 
-      {!paid ? (
-        <>
-          <form className="contact-form">
-            <input name="name" placeholder="Your name" onChange={handleChange} />
-            <input name="email" placeholder="Email" onChange={handleChange} />
-            <input
-              name="location"
-              placeholder="Event location"
-              onChange={handleChange}
-              onBlur={handleLocationBlur}
-            />
-
-            <div className="date-time">
-              <input type="date" name="date" onChange={handleChange} />
-              <input type="time" name="time" onChange={handleChange} />
+            <div className="price-summary">
+              <div className="price-line"><span>Base Price:</span> <span>€{basePrice}</span></div>
+              {distanceKm && (
+                <div className="price-line">
+                  <span>Travel ({distanceKm} km):</span> 
+                  <span>€{(totalPrice - basePrice).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="total-line"><h3>Total: €{totalPrice}</h3></div>
+              {isCalculating && <p className="calculating-text">Calculating travel fees...</p>}
             </div>
-          </form>
 
-          {/* PRICE BREAKDOWN */}
-          <div className="price-box">
-            <p>Package: €{basePrice}</p>
-            {distanceKm && (
-              <p>
-                Travel fee ({distanceKm} km): €{travelFee.toFixed(2)}
-              </p>
-            )}
-            <h3>Total: €{totalPrice}</h3>
+            <div className="paypal-container">
+              <PayPalScriptProvider options={{ "client-id": "sb", currency: "EUR" }}>
+                <PayPalButtons
+                  disabled={!canPay}
+                  forceReRender={[totalPrice]} // Important: Redraws button if price changes
+                  createOrder={(data, actions) => {
+                    return actions.order.create({
+                      purchase_units: [{ amount: { value: totalPrice } }],
+                    })
+                  }}
+                  onApprove={(data, actions) => actions.order.capture().then(() => setPaid(true))}
+                />
+              </PayPalScriptProvider>
+            </div>
+          </>
+        ) : (
+          <div className="success-message">
+            <h3>🚀 Flight Reserved!</h3>
+            <p>Check your email for confirmation. We'll be in touch soon.</p>
           </div>
-
-          <PayPalScriptProvider
-            options={{ "client-id": "YOUR_CLIENT_ID", currency: "EUR" }}
-          >
-            <PayPalButtons
-              disabled={!canPay}
-              createOrder={(data, actions) =>
-                actions.order.create({
-                  purchase_units: [
-                    {
-                      amount: { value: totalPrice },
-                    },
-                  ],
-                })
-              }
-              onApprove={(data, actions) =>
-                actions.order.capture().then(() => setPaid(true))
-              }
-            />
-          </PayPalScriptProvider>
-
-          {!canPay && (
-            <p className="warning-text">
-              Please fill all fields to continue
-            </p>
-          )}
-        </>
-      ) : (
-        <h3>✅ Booking confirmed – we’ll contact you shortly</h3>
-      )}
+        )}
+      </div>
     </section>
   )
 }

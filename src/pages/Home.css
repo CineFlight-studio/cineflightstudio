@@ -1,39 +1,62 @@
+/* --- HERO SECTION --- */
 .hero {
   position: relative;
   height: 100vh;
-  background: url("/bee35.jpg") center/cover no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
+  overflow: hidden; /* Important: keeps video inside the box */
+  background: #000; /* Fallback color */
 }
 
-.hero-overlay {
+/* This replaces your background image with the video */
+.hero-video {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  transform: translate(-50%, -50%);
+  z-index: 1; /* Sits at the bottom */
+  object-fit: cover;
+}
+
+/* This is the dark "tint" over the video so text is easy to read */
+.video-overlay {
   position: absolute;
   inset: 0;
   background: linear-gradient(
     to bottom,
-    rgba(0,0,0,0.7),
-    rgba(0,0,0,0.9)
+    rgba(0, 0, 0, 0.5),
+    rgba(0, 0, 0, 0.8)
   );
+  z-index: 2; /* Sits above video, below text */
 }
 
 .hero-content {
   position: relative;
   text-align: center;
   color: white;
-  z-index: 2;
+  z-index: 3; /* Sits on very top */
   max-width: 800px;
   padding: 20px;
 }
 
+/* --- TEXT & BUTTON STYLES (Kept your original style) --- */
 .hero-content h1 {
   font-size: clamp(2.5rem, 6vw, 4.5rem);
   font-weight: 800;
   letter-spacing: 1px;
+  line-height: 1.1;
 }
 
-.hero-content p {
+.hero-content span {
+  color: #7c3aed; /* Highlights your brand color in the text */
+}
+
+.hero-sub {
   margin-top: 20px;
   font-size: 1.2rem;
   opacity: 0.85;
@@ -47,7 +70,8 @@
   flex-wrap: wrap;
 }
 
-.btn {
+/* --- BUTTONS --- */
+.cta {
   padding: 14px 28px;
   border-radius: 999px;
   font-weight: 600;
@@ -55,21 +79,22 @@
   transition: all 0.3s ease;
 }
 
-.btn.primary {
+.cta.primary {
   background: #7c3aed;
   color: white;
 }
 
-.btn.primary:hover {
+.cta.primary:hover {
   background: #6d28d9;
+  transform: translateY(-2px);
 }
 
-.btn.secondary {
+.cta.secondary {
   border: 2px solid white;
   color: white;
 }
 
-.btn.secondary:hover {
+.cta.secondary:hover {
   background: white;
   color: black;
 }
